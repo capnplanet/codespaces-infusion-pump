@@ -1,0 +1,1 @@
+"""Edge inference service package."""
