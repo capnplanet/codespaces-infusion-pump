@@ -1,0 +1,49 @@
+"""Patient management endpoints."""
+
+from __future__ import annotations
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from ..core.database import get_db
+from ..core.security import get_current_user
+from ..models import domain
+from ..schemas import patient as patient_schema
+
+router = APIRouter()
+
+
+@router.post("/", response_model=patient_schema.PatientRead, status_code=status.HTTP_201_CREATED)
+async def create_patient(
+    payload: patient_schema.PatientCreate,
+    db: AsyncSession = Depends(get_db),
+    user: dict = Depends(get_current_user),
+) -> patient_schema.PatientRead:
+    stmt = select(domain.Patient).where(domain.Patient.mrn == payload.mrn)
+    existing = (await db.execute(stmt)).scalar_one_or_none()
+    if existing:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Patient already exists")
+
+    patient = domain.Patient(
+        mrn=payload.mrn,
+        hashed_mrn=payload.mrn,  # replace with irreversible hash in production
+        demographics=payload.demographics,
+        created_by=user["sub"],
+    )
+    db.add(patient)
+    await db.commit()
+    await db.refresh(patient)
+    return patient
+
+
+@router.get("/{patient_id}", response_model=patient_schema.PatientRead)
+async def get_patient(
+    patient_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: dict = Depends(get_current_user),
+) -> patient_schema.PatientRead:
+    patient = await db.get(domain.Patient, patient_id)
+    if patient is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
+    return patient
