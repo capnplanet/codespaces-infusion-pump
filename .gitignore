@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.cache
+.venv/
+venv/
+.env
+
+# Rust
+/target/
+Cargo.lock
+
+# CMake
+build/
+CMakeFiles/
+CMakeCache.txt
+cmake-build-*/
+
+# Node/Frontend
+node_modules/
+*.log
+
+# Data
+ml/registry/
+ml/artifacts/
+ml/data/
+
+# VS Code
+.vscode/
+
+# Misc
+.DS_Store
+.idea/

@@ -1,0 +1,3 @@
+# Validation Reports
+
+Store generated validation reports, signed protocol executions, and supporting evidence under document control. This folder contains placeholders only; production evidence must reside in the controlled eQMS repository with Part 11-compliant audit trails.

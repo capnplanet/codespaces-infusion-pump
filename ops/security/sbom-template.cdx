@@ -1,0 +1,13 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "components": [
+    {
+      "type": "application",
+      "name": "api-service",
+      "version": "0.1.0",
+      "purl": "pkg:pypi/infusion-platform-api@0.1.0"
+    }
+  ]
+}

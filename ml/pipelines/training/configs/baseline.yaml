@@ -1,0 +1,20 @@
+experiment_name: "map-predictor-baseline"
+dataset_path: "data/icustays.parquet"
+features:
+  vital_signs: ["map", "heart_rate", "spo2"]
+  labs: ["lactate", "creatinine"]
+  demographics: ["age", "weight_kg"]
+model:
+  type: "xgboost_tcn_ensemble"
+  xgboost:
+    max_depth: 4
+    learning_rate: 0.05
+    n_estimators: 300
+  tcn:
+    channels: 32
+    kernel_size: 3
+    dropout: 0.1
+metrics:
+  auroc_threshold: 0.85
+  calibration_slope_range: [0.9, 1.1]
+  mae_map_mmHg: 5.0

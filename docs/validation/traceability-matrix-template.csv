@@ -1,0 +1,4 @@
+Requirement ID,Design Artifact,Verification Artifact,Risk ID
+URS-FUNC-001,docs/architecture/requirements-overview.md,validation/protocols/system-test-protocol.md,RISK-001
+URS-SAFE-002,firmware/include/safety_controller.h,firmware/tests/test_safety_controller.c,RISK-002
+URS-ML-003,ml/pipelines/training/train.py,ml/config/acceptance-criteria.yaml,RISK-010

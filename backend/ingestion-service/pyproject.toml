@@ -1,0 +1,26 @@
+[project]
+name = "telemetry-ingestion-service"
+version = "0.1.0"
+description = "Telemetry ingestion service bridging edge gateways to backend event streams"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+  { name = "Clinical Automation Team" }
+]
+dependencies = [
+  "grpcio==1.63.0",
+  "grpcio-tools==1.63.0",
+  "pydantic==2.6.3",
+  "aiokafka==0.10.0",
+  "structlog==24.2.0"
+]
+
+[project.optional-dependencies]
+test = [
+  "pytest==8.1.1",
+  "pytest-asyncio==0.23.5"
+]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"

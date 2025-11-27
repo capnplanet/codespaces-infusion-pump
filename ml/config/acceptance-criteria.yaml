@@ -1,0 +1,8 @@
+# Acceptance criteria for MAP prediction models
+auroc_min: 0.85
+auprc_min: 0.45
+calibration_slope_range:
+  lower: 0.9
+  upper: 1.1
+map_mae_max: 5.0
+fallback_trigger_rate_max: 0.08
