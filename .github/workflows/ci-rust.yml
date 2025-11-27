@@ -1,0 +1,20 @@
+name: CI - Rust Safety Controller
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: edge/safety-controller
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build
+        run: cargo build --release
+      - name: Test
+        run: cargo test --all --verbose
