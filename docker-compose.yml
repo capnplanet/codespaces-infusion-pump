@@ -1,0 +1,37 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: infusion
+      POSTGRES_PASSWORD: infusion
+      POSTGRES_DB: infusion
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U infusion"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: ./backend/api-service
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgres+asyncpg://infusion:infusion@postgres:5432/infusion
+    ports:
+      - "8000:8000"
+
+  ingestion:
+    build: ./backend/ingestion-service
+    depends_on:
+      - api
+    environment:
+      INGESTION__KAFKA_BOOTSTRAP_SERVERS: localhost:9092
+      INGESTION__TLS_CERT_PATH: /tmp/server.crt
+      INGESTION__TLS_KEY_PATH: /tmp/server.key
+      INGESTION__TLS_CA_PATH: /tmp/ca.crt
+    ports:
+      - "50051:50051"
+    # Note: Kafka broker and cert volumes not yet defined (placeholder).

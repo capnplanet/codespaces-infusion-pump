@@ -2,3 +2,11 @@ Requirement ID,Design Artifact,Verification Artifact,Risk ID
 URS-FUNC-001,docs/architecture/requirements-overview.md,validation/protocols/system-test-protocol.md,RISK-001
 URS-SAFE-002,firmware/include/safety_controller.h,firmware/tests/test_safety_controller.c,RISK-002
 URS-ML-003,ml/pipelines/training/train.py,ml/config/acceptance-criteria.yaml,RISK-010
+FR-001,firmware/include/safety_controller.h,firmware/tests/test_safety_controller.c,RISK-HAZ-OVERINFUSION
+FR-002,edge/safety-controller/src/lib.rs,edge/safety-controller/tests/,RISK-HAZ-OVERINFUSION
+FR-003,edge/inference-service/src/edge_inference/service.py,edge/inference-service/tests/,RISK-HAZ-OVERINFUSION
+FR-004,backend/api-service/app/models/domain.py,backend/api-service/tests/test_patients.py,RISK-HAZ-DATAINTEGRITY
+FR-005,backend/ingestion-service/proto/telemetry.proto,backend/ingestion-service/tests/,RISK-HAZ-TELEMETRYLOSS
+NFR-SAFETY-LATENCY,docs/regulatory/software/software-requirements-specification.md,performance tests (TBD),RISK-HAZ-OVERINFUSION
+NFR-SEC-MTLS,docs/regulatory/cybersecurity/cybersecurity-plan.md,security test scripts (TBD),RISK-HAZ-UNAUTHORIZEDACCESS
+NFR-REL-INGESTION-RETRY,backend/ingestion-service/src/ingestion_service/server.py,integration tests (TBD),RISK-HAZ-TELEMETRYLOSS
