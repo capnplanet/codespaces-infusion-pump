@@ -23,6 +23,15 @@ services:
     ports:
       - "8000:8000"
 
+  ui:
+    build: ./frontend/spark-ui
+    depends_on:
+      - api
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000
+    ports:
+      - "5173:5173"
+
   ingestion:
     build: ./backend/ingestion-service
     depends_on:

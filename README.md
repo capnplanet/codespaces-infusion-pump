@@ -35,6 +35,7 @@ This repository is designed for engineering development, integration testing, an
 - [docs](docs) — Architecture, design control, risk, regulatory, and change-control artifacts.
 - [backend](backend) — API service, telemetry ingestion service, infra migration assets.
 - [edge](edge) — Rust safety controller and Python inference service.
+- [frontend/spark-ui](frontend/spark-ui) — React-based operator/developer console with Spark-parity component patterns.
 - [firmware](firmware) — Pump controller firmware and C safety logic/tests.
 - [ml](ml) — Training/evaluation pipelines and ML acceptance criteria.
 - [validation](validation) — Validation plans, protocols, reports, and helper scripts.
@@ -81,6 +82,14 @@ INGEST_TLS_CLIENT_CERT=ops/iot/certs/dev/client.crt \
 INGEST_TLS_CLIENT_KEY=ops/iot/certs/dev/client.key \
 ./scripts/run_synthetic_demo.sh
 ```
+
+Start backend + UI development stack with docker compose:
+
+```bash
+docker compose up -d postgres kafka api ingestion ui
+```
+
+UI will be available at `http://localhost:5173`.
 
 ## Test Execution
 
