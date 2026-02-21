@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     kafka_send_backoff_initial_seconds: float = 0.1
     kafka_send_backoff_max_seconds: float = 1.0
     idempotency_cache_size: int = 10000
+    enforce_device_api_keys: bool = True
+    device_api_keys: dict[str, str] = {}
     audit_endpoint: str = "http://api:8000/audit/events"
     audit_api_token: str = "change-me"
     tls_cert_path: str = "/etc/infusion/certs/server.crt"
