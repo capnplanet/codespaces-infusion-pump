@@ -32,6 +32,10 @@ For gRPC mode, configure:
 - `EDGE_INFER_TELEMETRY_API_KEY`
 - `EDGE_INFER_TELEMETRY_DEVICE_ID`
 - `EDGE_INFER_TELEMETRY_SESSION_ID`
+- `EDGE_INFER_TELEMETRY_GRPC_USE_TLS=true`
+- `EDGE_INFER_TELEMETRY_GRPC_TLS_CA_CERT=/path/to/ca.crt`
+- `EDGE_INFER_TELEMETRY_GRPC_TLS_CLIENT_CERT=/path/to/client.crt` (optional; required for mTLS)
+- `EDGE_INFER_TELEMETRY_GRPC_TLS_CLIENT_KEY=/path/to/client.key` (optional; required for mTLS)
 
 Replay generated synthetic fixture JSONL directly to ingestion:
 
@@ -39,5 +43,8 @@ Replay generated synthetic fixture JSONL directly to ingestion:
 PYTHONPATH=src python -m edge_inference.replay_fixture \
 	--fixture ../../ml/pipelines/training/demo_artifacts/fixtures/telemetry_stream.jsonl \
 	--target localhost:50051 \
-	--api-key <device-api-key>
+	--api-key <device-api-key> \
+	--tls-ca-cert ../../ops/iot/certs/dev/ca.crt \
+	--tls-client-cert ../../ops/iot/certs/dev/client.crt \
+	--tls-client-key ../../ops/iot/certs/dev/client.key
 ```

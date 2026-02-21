@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from itertools import count
+from pathlib import Path
 from typing import Any, Dict, List
 
 import grpc
@@ -20,6 +21,10 @@ class TelemetryClient:
         transport: str,
         endpoint: str,
         grpc_target: str,
+        grpc_use_tls: bool = False,
+        grpc_tls_ca_cert: Path | None = None,
+        grpc_tls_client_cert: Path | None = None,
+        grpc_tls_client_key: Path | None = None,
         api_key: str,
         default_session_id: str,
         default_device_id: str,
@@ -27,10 +32,38 @@ class TelemetryClient:
         self._transport = transport.lower()
         self._endpoint = endpoint.rstrip("/")
         self._grpc_target = grpc_target
+        self._grpc_use_tls = grpc_use_tls
+        self._grpc_tls_ca_cert = grpc_tls_ca_cert
+        self._grpc_tls_client_cert = grpc_tls_client_cert
+        self._grpc_tls_client_key = grpc_tls_client_key
         self._api_key = api_key
         self._default_session_id = default_session_id
         self._default_device_id = default_device_id
         self._sequence = count(start=1)
+
+    def _grpc_channel(self):
+        if not self._grpc_use_tls:
+            return grpc.insecure_channel(self._grpc_target)
+
+        if self._grpc_tls_ca_cert is None:
+            raise RuntimeError("gRPC TLS is enabled but no CA certificate path was configured")
+
+        if (self._grpc_tls_client_cert is None) != (self._grpc_tls_client_key is None):
+            raise RuntimeError("gRPC mTLS requires both client cert and client key")
+
+        root_certificates = self._grpc_tls_ca_cert.read_bytes()
+        certificate_chain = None
+        private_key = None
+        if self._grpc_tls_client_cert is not None and self._grpc_tls_client_key is not None:
+            certificate_chain = self._grpc_tls_client_cert.read_bytes()
+            private_key = self._grpc_tls_client_key.read_bytes()
+
+        credentials = grpc.ssl_channel_credentials(
+            root_certificates=root_certificates,
+            private_key=private_key,
+            certificate_chain=certificate_chain,
+        )
+        return grpc.secure_channel(self._grpc_target, credentials)
 
     def publish_prediction(self, prediction: List[float], metadata: Dict[str, Any]) -> None:
         if self._transport == "grpc":
@@ -68,7 +101,7 @@ class TelemetryClient:
             },
         )
 
-        channel = grpc.insecure_channel(self._grpc_target)
+        channel = self._grpc_channel()
         try:
             stub = telemetry_pb2_grpc.TelemetryIngestionStub(channel)
             ack = stub.StreamTelemetry(

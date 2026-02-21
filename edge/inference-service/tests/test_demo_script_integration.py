@@ -49,7 +49,7 @@ def test_run_synthetic_demo_script_replays_fixture(tmp_path: Path) -> None:
 
         assert service.event_count == 6
         assert service.api_key == "demo-key"
-        assert service.device_id is not None
+        assert service.device_id is None
         assert (output_dir / "fixtures" / "telemetry_stream.jsonl").exists()
     finally:
         server.stop(grace=0)

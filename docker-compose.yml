@@ -1,4 +1,3 @@
-version: "3.9"
 services:
   postgres:
     image: postgres:16-alpine
@@ -19,7 +18,8 @@ services:
     depends_on:
       - postgres
     environment:
-      DATABASE_URL: postgres+asyncpg://infusion:infusion@postgres:5432/infusion
+      API_SETTINGS__DATABASE_URL: postgres+asyncpg://infusion:infusion@postgres:5432/infusion
+      API_SETTINGS__JWT_SECRET_KEY: dev-insecure-jwt-secret
     ports:
       - "8000:8000"
 
@@ -27,25 +27,35 @@ services:
     build: ./backend/ingestion-service
     depends_on:
       - api
+      - kafka
+    restart: on-failure
     environment:
-      INGESTION__KAFKA_BOOTSTRAP_SERVERS: localhost:9092
-      INGESTION__TLS_CERT_PATH: /tmp/server.crt
-      INGESTION__TLS_KEY_PATH: /tmp/server.key
-      INGESTION__TLS_CA_PATH: /tmp/ca.crt
+      INGESTION__KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      INGESTION__ENFORCE_DEVICE_API_KEYS: "true"
+      INGESTION__DEVICE_API_KEYS: '{"pump-00":"change-me","pump-01":"change-me","pump-02":"change-me","pump-03":"change-me","pump-04":"change-me","pump-05":"change-me","pump-06":"change-me","pump-07":"change-me"}'
+      INGESTION__TLS_CERT_PATH: /certs/server.crt
+      INGESTION__TLS_KEY_PATH: /certs/server.key
+      INGESTION__TLS_CA_PATH: /certs/ca.crt
+    volumes:
+      - ./ops/iot/certs/dev:/certs:ro
     ports:
       - "50051:50051"
-    # Note: Kafka broker and cert volumes not yet defined (placeholder).
   kafka:
-    image: bitnami/kafka:3.7
+    image: confluentinc/cp-kafka:7.7.1
     environment:
-      KAFKA_CFG_NODE_ID: 0
-      KAFKA_CFG_PROCESS_ROLES: broker,controller
-      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
-      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 0@localhost:9093
-      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
-      ALLOW_PLAINTEXT_LISTENER: yes
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
     ports:
       - "9092:9092"
     healthcheck:

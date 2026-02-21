@@ -50,18 +50,60 @@ def _iter_fixture_events(fixture_path: Path):
             yield _event_to_envelope(event)
 
 
-def stream_fixture(*, fixture_path: Path, target: str, api_key: str) -> bool:
-    channel = grpc.insecure_channel(target)
+def _build_grpc_channel(
+    *,
+    target: str,
+    use_tls: bool,
+    tls_ca_cert: Path | None,
+    tls_client_cert: Path | None,
+    tls_client_key: Path | None,
+):
+    if not use_tls:
+        return grpc.insecure_channel(target)
+
+    if tls_ca_cert is None:
+        raise ValueError("TLS is enabled but --tls-ca-cert was not provided")
+    if (tls_client_cert is None) != (tls_client_key is None):
+        raise ValueError("mTLS requires both --tls-client-cert and --tls-client-key")
+
+    root_certificates = tls_ca_cert.read_bytes()
+    certificate_chain = tls_client_cert.read_bytes() if tls_client_cert else None
+    private_key = tls_client_key.read_bytes() if tls_client_key else None
+    credentials = grpc.ssl_channel_credentials(
+        root_certificates=root_certificates,
+        private_key=private_key,
+        certificate_chain=certificate_chain,
+    )
+    return grpc.secure_channel(target, credentials)
+
+
+def stream_fixture(
+    *,
+    fixture_path: Path,
+    target: str,
+    api_key: str,
+    tls_enabled: bool = False,
+    tls_ca_cert: Path | None = None,
+    tls_client_cert: Path | None = None,
+    tls_client_key: Path | None = None,
+) -> bool:
+    channel = _build_grpc_channel(
+        target=target,
+        use_tls=tls_enabled,
+        tls_ca_cert=tls_ca_cert,
+        tls_client_cert=tls_client_cert,
+        tls_client_key=tls_client_key,
+    )
     try:
         stub = telemetry_pb2_grpc.TelemetryIngestionStub(channel)
-        first_device_id = None
         events = list(_iter_fixture_events(fixture_path))
-        if events:
-            first_device_id = events[0].device_id
+
+        unique_device_ids = {event.device_id for event in events}
+        single_device_id = next(iter(unique_device_ids)) if len(unique_device_ids) == 1 else None
 
         metadata = (("x-api-key", api_key),)
-        if first_device_id:
-            metadata = (("x-api-key", api_key), ("x-device-id", first_device_id))
+        if single_device_id:
+            metadata = (("x-api-key", api_key), ("x-device-id", single_device_id))
 
         ack = stub.StreamTelemetry(iter(events), metadata=metadata, timeout=5.0)
         return bool(ack.accepted)
@@ -74,9 +116,28 @@ def main() -> None:
     parser.add_argument("--fixture", type=Path, required=True)
     parser.add_argument("--target", type=str, default="localhost:50051")
     parser.add_argument("--api-key", type=str, required=True)
+    parser.add_argument("--tls-enabled", action="store_true")
+    parser.add_argument("--tls-ca-cert", type=Path)
+    parser.add_argument("--tls-client-cert", type=Path)
+    parser.add_argument("--tls-client-key", type=Path)
     args = parser.parse_args()
 
-    accepted = stream_fixture(fixture_path=args.fixture, target=args.target, api_key=args.api_key)
+    tls_enabled = bool(
+        args.tls_enabled
+        or args.tls_ca_cert is not None
+        or args.tls_client_cert is not None
+        or args.tls_client_key is not None
+    )
+
+    accepted = stream_fixture(
+        fixture_path=args.fixture,
+        target=args.target,
+        api_key=args.api_key,
+        tls_enabled=tls_enabled,
+        tls_ca_cert=args.tls_ca_cert,
+        tls_client_cert=args.tls_client_cert,
+        tls_client_key=args.tls_client_key,
+    )
     if not accepted:
         raise SystemExit("ingestion did not accept fixture stream")
     print(f"streamed fixture to {args.target}: {args.fixture}")
