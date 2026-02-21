@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package infusion.telemetry;
+
+message VitalReading {
+  string name = 1;
+  double value = 2;
+  int64 timestamp_ms = 3;
+}
+
+message PumpStatus {
+  double rate_mcg_per_kg_min = 1;
+  bool fallback_active = 2;
+  bool alarm_triggered = 3;
+}
+
+message TelemetryEnvelope {
+  string session_id = 1;
+  string device_id = 2;
+  repeated VitalReading vitals = 3;
+  PumpStatus pump_status = 4;
+  map<string, double> predictions = 5;
+  int64 sequence = 6;
+}
+
+message TelemetryAck {
+  bool accepted = 1;
+}
+
+service TelemetryIngestion {
+  rpc StreamTelemetry(stream TelemetryEnvelope) returns (TelemetryAck);
+}

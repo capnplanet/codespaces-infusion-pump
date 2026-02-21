@@ -81,7 +81,14 @@ def get_model_runner(settings: Settings = Depends(get_settings)) -> ModelRunner:
 
 
 def get_telemetry_client(settings: Settings = Depends(get_settings)) -> TelemetryClient:
-    return TelemetryClient(settings.telemetry_endpoint, settings.telemetry_api_key)
+    return TelemetryClient(
+        transport=settings.telemetry_transport,
+        endpoint=settings.telemetry_endpoint,
+        grpc_target=settings.telemetry_grpc_target,
+        api_key=settings.telemetry_api_key,
+        default_session_id=settings.telemetry_session_id,
+        default_device_id=settings.telemetry_device_id,
+    )
 
 
 @app.post("/predict", response_model=InferenceResponse)
@@ -103,6 +110,7 @@ def predict(
         raise HTTPException(status_code=409, detail="Confidence below threshold")
 
     map_forecast = _flatten_prediction(prediction)
+    metadata["confidence"] = confidence
     telem.publish_prediction(prediction=map_forecast, metadata=metadata)
     return InferenceResponse(
         map_forecast=map_forecast,
