@@ -5,7 +5,9 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from .core.database import get_engine
 from .core.settings import get_settings
+from .models.domain import Base
 from .routers import audit, devices, drug_library, health, ml_models, patients, sessions
 
 settings = get_settings()
@@ -26,3 +28,10 @@ app.include_router(sessions.router, prefix="/sessions", tags=["sessions"])
 app.include_router(drug_library.router, prefix="/drug-library", tags=["drug-library"])
 app.include_router(ml_models.router, prefix="/ml-models", tags=["ml-models"])
 app.include_router(audit.router, prefix="/audit", tags=["audit"])
+
+
+@app.on_event("startup")
+async def ensure_schema() -> None:
+    engine = get_engine()
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)

@@ -47,6 +47,29 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
 }
 
+.spark-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.spark-tab {
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.spark-tab.active {
+  background: #111827;
+  border-color: #111827;
+  color: #f9fafb;
+}
+
 .spark-card {
   background: white;
   border: 1px solid #e5e7eb;

@@ -18,7 +18,8 @@ services:
     depends_on:
       - postgres
     environment:
-      API_SETTINGS__DATABASE_URL: postgres+asyncpg://infusion:infusion@postgres:5432/infusion
+      API_SETTINGS__DATABASE_URL: postgresql+asyncpg://infusion:infusion@postgres:5432/infusion
+      DATABASE_URL: postgresql+asyncpg://infusion:infusion@postgres:5432/infusion
       API_SETTINGS__JWT_SECRET_KEY: dev-insecure-jwt-secret
     ports:
       - "8000:8000"
@@ -28,7 +29,8 @@ services:
     depends_on:
       - api
     environment:
-      VITE_API_BASE_URL: http://localhost:8000
+      VITE_API_BASE_URL: /api
+      VITE_DEV_PROXY_TARGET: http://api:8000
     ports:
       - "5173:5173"
 

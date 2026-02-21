@@ -31,6 +31,14 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--dataset-format", choices=["csv", "parquet"], default="csv")
     parser.add_argument("--run-training", action="store_true")
+    parser.add_argument("--register-model", action="store_true")
+    parser.add_argument("--registry-api-url", type=str, default="http://localhost:8000")
+    parser.add_argument("--registry-id", type=str, default="map-predictor")
+    parser.add_argument("--registry-version", type=str)
+    parser.add_argument("--registry-token", type=str)
+    parser.add_argument("--registry-jwt-secret", type=str)
+    parser.add_argument("--registry-jwt-subject", type=str, default="dev-admin")
+    parser.add_argument("--registry-jwt-roles", type=str, default="admin,clinician,auditor")
     args = parser.parse_args()
 
     output_dir = args.output_dir
@@ -59,10 +67,29 @@ def main() -> None:
     print(f"Derived training config written: {derived_config_path}")
 
     if args.run_training:
-        subprocess.run(
-            ["python", "train.py", "--config", str(derived_config_path)],
-            check=True,
-        )
+        train_cmd = ["python", "train.py", "--config", str(derived_config_path)]
+        if args.register_model:
+            train_cmd.extend(
+                [
+                    "--register-model",
+                    "--registry-api-url",
+                    args.registry_api_url,
+                    "--registry-id",
+                    args.registry_id,
+                    "--registry-jwt-subject",
+                    args.registry_jwt_subject,
+                    "--registry-jwt-roles",
+                    args.registry_jwt_roles,
+                ]
+            )
+            if args.registry_version:
+                train_cmd.extend(["--registry-version", args.registry_version])
+            if args.registry_token:
+                train_cmd.extend(["--registry-token", args.registry_token])
+            if args.registry_jwt_secret:
+                train_cmd.extend(["--registry-jwt-secret", args.registry_jwt_secret])
+
+        subprocess.run(train_cmd, check=True)
 
 
 if __name__ == "__main__":

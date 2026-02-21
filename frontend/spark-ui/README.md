@@ -40,9 +40,9 @@ docker compose up -d ui api postgres kafka ingestion
 
 Use the **Connection & Auth** card to:
 
-1. Set API base URL (default `http://localhost:8000`)
+1. Set API base URL (default `/api`, proxied by Vite to backend API)
 2. Generate a dev JWT from subject/roles/secret
 3. Use the generated token for all protected endpoints
 
 For local compose defaults, use secret `dev-insecure-jwt-secret`.
-The initial API base URL can be overridden with `VITE_API_BASE_URL`.
+Proxy target can be overridden with `VITE_DEV_PROXY_TARGET` and initial base URL with `VITE_API_BASE_URL`.

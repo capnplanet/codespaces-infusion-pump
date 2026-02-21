@@ -23,6 +23,30 @@ pip install -r requirements.txt
 python train.py --config configs/baseline.yaml
 ```
 
+By default, training now produces both:
+
+- a runtime model binary: `artifacts/<run_id>/deploy/map_predictor.onnx`
+- a deploy-ready artifact bundle including:
+	- `deploy_manifest.json`
+	- `feature_contract.json`
+	- `acceptance_summary.json`
+	- `deploy_bundle.json` (summary pointers)
+
+Skip export if needed:
+
+```bash
+python train.py --config configs/baseline.yaml --skip-export
+```
+
+Register the deploy-ready artifact in the API model registry in the same command:
+
+```bash
+python train.py --config configs/baseline.yaml \
+	--register-model \
+	--registry-api-url http://localhost:8000 \
+	--registry-jwt-secret dev-insecure-jwt-secret
+```
+
 ## Synthetic Demo Data
 
 Generate deterministic synthetic training data plus telemetry fixtures for end-to-end demos:
@@ -30,6 +54,18 @@ Generate deterministic synthetic training data plus telemetry fixtures for end-t
 ```bash
 python run_synthetic_demo.py --output-dir demo_artifacts --dataset-format csv
 python train.py --config demo_artifacts/configs/synthetic-baseline.yaml
+```
+
+Single-command demo for generate + train + package + registry registration:
+
+```bash
+python run_synthetic_demo.py \
+	--output-dir demo_artifacts \
+	--dataset-format csv \
+	--run-training \
+	--register-model \
+	--registry-api-url http://localhost:8000 \
+	--registry-jwt-secret dev-insecure-jwt-secret
 ```
 
 The demo runner writes:
