@@ -28,7 +28,7 @@ async def list_events(
             "actor": event.actor,
             "action": event.action,
             "resource": event.resource,
-            "metadata": event.metadata,
+            "metadata": event.event_metadata,
         }
         for event in results
     ]

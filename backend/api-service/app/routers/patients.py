@@ -7,7 +7,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..core.database import get_db
-from ..core.security import get_current_user
+from ..core.security import get_current_user, hash_identifier
+from ..core.settings import APISettings, get_settings
 from ..models import domain
 from ..schemas import patient as patient_schema
 
@@ -18,6 +19,7 @@ router = APIRouter()
 async def create_patient(
     payload: patient_schema.PatientCreate,
     db: AsyncSession = Depends(get_db),
+    settings: APISettings = Depends(get_settings),
     user: dict = Depends(get_current_user),
 ) -> patient_schema.PatientRead:
     stmt = select(domain.Patient).where(domain.Patient.mrn == payload.mrn)
@@ -27,7 +29,7 @@ async def create_patient(
 
     patient = domain.Patient(
         mrn=payload.mrn,
-        hashed_mrn=payload.mrn,  # replace with irreversible hash in production
+        hashed_mrn=hash_identifier(payload.mrn, settings.mrn_hash_salt),
         demographics=payload.demographics,
         created_by=user["sub"],
     )

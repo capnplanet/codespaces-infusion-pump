@@ -13,6 +13,7 @@ class APISettings(BaseSettings):
     jwt_secret_key: str
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
+    mrn_hash_salt: str = "change-me"
     telemetry_topic: str = "telemetry.events"
     audit_topic: str = "audit.events"
 

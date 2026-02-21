@@ -10,7 +10,9 @@ authors = [
 dependencies = [
   "grpcio==1.63.0",
   "grpcio-tools==1.63.0",
+  "protobuf==5.29.6",
   "pydantic==2.6.3",
+  "pydantic-settings==2.2.1",
   "aiokafka==0.10.0",
   "structlog==24.2.0"
 ]

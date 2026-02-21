@@ -23,7 +23,7 @@ jobs:
         run: pip install cyclonedx-bom
       - name: Generate SBOM
         working-directory: ${{ matrix.service }}
-        run: cyclonedx-py -o sbom.json || echo "SBOM generation soft-fail"
+        run: cyclonedx-py -o sbom.json
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -36,10 +36,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - name: Install audit
-        run: cargo install cargo-audit || true
+        run: cargo install cargo-audit
       - name: Cargo audit
         working-directory: edge/safety-controller
-        run: cargo audit || echo "cargo audit soft-fail"
+        run: cargo audit
 
   python-security-scan:
     runs-on: ubuntu-latest
@@ -52,7 +52,7 @@ jobs:
         run: pip install bandit
       - name: Run bandit (API service)
         working-directory: backend/api-service
-        run: bandit -r app -f json -o bandit-report.json || echo "bandit soft-fail"
+        run: bandit -r app -f json -o bandit-report.json
       - name: Upload bandit report
         uses: actions/upload-artifact@v4
         with:

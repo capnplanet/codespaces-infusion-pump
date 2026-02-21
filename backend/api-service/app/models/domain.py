@@ -4,8 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import JSON, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import AuditMixin, Base
@@ -16,7 +15,7 @@ class Patient(Base, AuditMixin):
 
     mrn: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     hashed_mrn: Mapped[str] = mapped_column(String(128), unique=True)
-    demographics: Mapped[dict] = mapped_column(JSONB)
+    demographics: Mapped[dict] = mapped_column(JSON)
 
     sessions: Mapped[list["PumpSession"]] = relationship(back_populates="patient", cascade="all, delete-orphan")
 
@@ -27,7 +26,7 @@ class DeviceConfiguration(Base, AuditMixin):
     device_id: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     firmware_version: Mapped[str] = mapped_column(String(32))
     gateway_version: Mapped[str] = mapped_column(String(32))
-    config_payload: Mapped[dict] = mapped_column(JSONB)
+    config_payload: Mapped[dict] = mapped_column(JSON)
 
 
 class DrugLibraryEntry(Base, AuditMixin):
@@ -60,7 +59,7 @@ class ControlParameter(Base, AuditMixin):
 
     session_id: Mapped[int] = mapped_column(ForeignKey("pump_sessions.id"))
     effective_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow)
-    payload: Mapped[dict] = mapped_column(JSONB)
+    payload: Mapped[dict] = mapped_column(JSON)
 
     session: Mapped[PumpSession] = relationship(back_populates="parameters")
 
@@ -72,7 +71,7 @@ class MLModelVersion(Base, AuditMixin):
     version: Mapped[str] = mapped_column(String(32))
     dataset_hash: Mapped[str] = mapped_column(String(128))
     validation_report_path: Mapped[str] = mapped_column(String(256))
-    acceptance_summary: Mapped[dict] = mapped_column(JSONB)
+    acceptance_summary: Mapped[dict] = mapped_column(JSON)
 
 
 class AuditEvent(Base):
@@ -83,6 +82,6 @@ class AuditEvent(Base):
     actor: Mapped[str] = mapped_column(String(128))
     action: Mapped[str] = mapped_column(String(128))
     resource: Mapped[str] = mapped_column(String(256))
-    before: Mapped[dict | None] = mapped_column(JSONB)
-    after: Mapped[dict | None] = mapped_column(JSONB)
-    metadata: Mapped[dict | None] = mapped_column(JSONB)
+    before: Mapped[dict | None] = mapped_column(JSON)
+    after: Mapped[dict | None] = mapped_column(JSON)
+    event_metadata: Mapped[dict | None] = mapped_column("metadata", JSON)
