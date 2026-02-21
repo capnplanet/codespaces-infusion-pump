@@ -2,7 +2,7 @@
 
 Reference implementation for an AI-assisted, closed-loop vasopressor infusion stack spanning firmware, edge safety/inference, backend services, ML pipelines, and regulatory/validation documentation.
 
-This repository is designed for engineering development, integration testing, and evidence scaffolding. It now supports a secure device-in-the-loop development bootstrap, but it is not production-ready for clinical deployment without additional implementation, verification, and regulatory completion work.
+This repository is designed for engineering development, integration testing, and evidence scaffolding. It now supports a secure device-in-the-loop development bootstrap plus model packaging and registry handoff, but it is not production-ready for clinical deployment without additional implementation, verification, and regulatory completion work.
 
 ## Current Capability Snapshot
 
@@ -15,12 +15,12 @@ This repository is designed for engineering development, integration testing, an
 - Gateway bootstrap self-test: automated container bring-up, mTLS channel validation, and ingestion API-key enforcement verification.
 - Safety controller hardening: aligned confidence/range fallback behavior in both Rust gateway controller and firmware controller.
 - Synthetic demo scaffolding: deterministic synthetic dataset generation, telemetry fixture generation, fixture replay tooling.
+- ML deployment artifact flow: training exports ONNX model binaries, produces deploy manifests/contracts, and can auto-register model versions in the API registry.
 - Debt governance automation: technical debt register synchronization into anomaly and traceability gap reporting.
 
 ### In Progress / Partial
 
 - End-to-end deployment wiring for all services in one production-like target environment (gateway image + backend platform parity).
-- ML artifact handoff from training to signed ONNX deployment package.
 - Full validation evidence closure for traceability rows currently marked as TBD.
 
 ### Not Yet Production Complete
@@ -64,6 +64,19 @@ Or run both steps with one command:
 
 ```bash
 DEVICE_API_KEY=<device-api-key> INGEST_TARGET=localhost:50051 ./scripts/run_synthetic_demo.sh
+```
+
+Generate synthetic data, train, package deploy artifacts, and auto-register in the model registry with one command:
+
+```bash
+cd ml/pipelines/training
+python run_synthetic_demo.py \
+	--output-dir demo_artifacts \
+	--dataset-format csv \
+	--run-training \
+	--register-model \
+	--registry-api-url http://localhost:8000 \
+	--registry-jwt-secret dev-insecure-jwt-secret
 ```
 
 Bring up and verify the local secure gateway/backend development path:
@@ -134,11 +147,14 @@ Current state is best described as secure integration-ready development baseline
 
 - Local gateway/backend bootstrap is runnable with mTLS and enforced device API keys.
 - Edge replay and telemetry publishing can operate over secure gRPC/mTLS.
+- Training can produce deploy-ready ONNX artifact bundles and register model metadata to the API in the same flow.
 - Core service/unit tests and secure synthetic replay workflows are operational.
 
 Current state is not release-ready for patient care use. Remaining release blockers include firmware hardware completion, production PKI/secrets operations, formal HIL/system verification evidence, and regulatory package closure.
 
 Use [docs/change-control/technical-debt-register.md](docs/change-control/technical-debt-register.md), [docs/regulatory/software/problem-anomaly-report.md](docs/regulatory/software/problem-anomaly-report.md), and [validation/reports/debt-traceability-gap-report.md](validation/reports/debt-traceability-gap-report.md) as the canonical open-item trackers.
+
+For a plain-language leadership overview, see [docs/executive-summary.md](docs/executive-summary.md).
 
 ## Regulatory and Safety Disclaimer
 
