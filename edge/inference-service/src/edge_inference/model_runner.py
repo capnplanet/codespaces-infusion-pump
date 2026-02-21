@@ -28,4 +28,8 @@ class ModelRunner:
         if duration_ms > self._timeout:
             raise RuntimeError("Inference exceeded timeout budget")
         metadata = {"inference_ms": duration_ms}
+        if len(outputs) > 1:
+            confidence_output = np.asarray(outputs[1])
+            if confidence_output.size == 1:
+                metadata["confidence"] = float(confidence_output.reshape(-1)[0])
         return outputs[0], metadata

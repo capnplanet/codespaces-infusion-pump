@@ -4,21 +4,22 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
-from pydantic import BaseSettings, Field, PositiveInt
+from pydantic import Field, PositiveInt
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     model_path: Path = Field(default=Path("/opt/edge/models/map_predictor.onnx"))
     inference_timeout_ms: PositiveInt = Field(default=150)
     min_confidence: float = Field(default=0.5)
+    required_feature_names: list[str] = Field(default_factory=list)
+    allow_legacy_confidence_index: bool = Field(default=True)
     telemetry_endpoint: str = Field(default="http://localhost:8081/telemetry")
     telemetry_api_key: str = Field(default="change-me")
     host: str = Field(default="0.0.0.0")
     port: PositiveInt = Field(default=8080)
 
-    class Config:
-        env_prefix = "EDGE_INFER_"
-        env_file = ".env"
+    model_config = SettingsConfigDict(env_prefix="EDGE_INFER_", env_file=".env")
 
 
 @lru_cache(maxsize=1)
