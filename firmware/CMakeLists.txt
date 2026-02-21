@@ -17,6 +17,7 @@ add_executable(pump_firmware
     src/main.c
     src/safety_controller.c
     src/communication.c
+    src/pump_hal.c
 )
 
 target_include_directories(pump_firmware PRIVATE include)
@@ -26,6 +27,7 @@ enable_testing()
 add_executable(test_safety_controller
     tests/test_safety_controller.c
     src/safety_controller.c
+    src/pump_hal.c
 )
 
 target_include_directories(test_safety_controller PRIVATE include)

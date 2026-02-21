@@ -1,6 +1,7 @@
 #include "safety_controller.h"
 
 #include <assert.h>
+#include <math.h>
 #include <stdio.h>
 
 int main(void) {
@@ -29,6 +30,18 @@ int main(void) {
     inputs.confidence = 0.2f;
     output = safety_controller_step(&inputs);
     assert(output.use_fallback_profile);
+
+    inputs.confidence = 1.2f;
+    inputs.predicted_map_mmHg = 60.0f;
+    output = safety_controller_step(&inputs);
+    assert(output.use_fallback_profile);
+    assert(output.trigger_alarm);
+
+    inputs.confidence = 0.9f;
+    inputs.predicted_map_mmHg = INFINITY;
+    output = safety_controller_step(&inputs);
+    assert(output.use_fallback_profile);
+    assert(output.trigger_alarm);
 
     printf("safety_controller tests passed.\n");
     return 0;

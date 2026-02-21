@@ -24,6 +24,8 @@ pub struct ControlOutput {
     pub trigger_alarm: bool,
 }
 
+const MIN_CONFIDENCE: f32 = 0.5;
+
 fn clamp(value: f32, min: f32, max: f32) -> f32 {
     value.min(max).max(min)
 }
@@ -45,7 +47,12 @@ pub fn safety_step(limits: &mut DosingLimits, inputs: Option<&ControlInputs>) ->
         }
     };
 
-    if !inputs.confidence.is_finite() || inputs.confidence < 0.5 {
+    if !inputs.confidence.is_finite()
+        || inputs.confidence < MIN_CONFIDENCE
+        || inputs.confidence > 1.0
+        || !inputs.predicted_map_mmhg.is_finite()
+        || !inputs.clinician_target_map_mmhg.is_finite()
+    {
         output.use_fallback_profile = true;
         output.commanded_rate_mcg_per_kg_min = limits.fallback_rate_mcg_per_kg_min;
         output.trigger_alarm = true;

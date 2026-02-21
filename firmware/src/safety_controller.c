@@ -2,6 +2,9 @@
 #include "pump_hal.h"
 
 #include <math.h>
+#include <stddef.h>
+
+#define MIN_CONFIDENCE_THRESHOLD 0.5f
 
 static dosing_limits_t active_limits;
 
@@ -43,7 +46,11 @@ control_output_t safety_controller_step(const control_inputs_t *inputs) {
         return output;
     }
 
-    if (inputs->confidence < 0.5f || isnan(inputs->predicted_map_mmHg)) {
+    if (!isfinite(inputs->confidence) ||
+        inputs->confidence < MIN_CONFIDENCE_THRESHOLD ||
+        inputs->confidence > 1.0f ||
+        !isfinite(inputs->predicted_map_mmHg) ||
+        !isfinite(inputs->clinician_target_map_mmHg)) {
         output.use_fallback_profile = true;
         output.commanded_rate_mcg_per_kg_min = active_limits.fallback_rate_mcg_per_kg_min;
         output.trigger_alarm = true;
