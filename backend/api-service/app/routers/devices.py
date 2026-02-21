@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..core.database import get_db
-from ..core.security import get_current_user
+from ..core.security import require_roles
 from ..models import domain
 from ..schemas import device as device_schema
 
@@ -18,7 +18,7 @@ router = APIRouter()
 async def create_device_configuration(
     payload: device_schema.DeviceConfigurationCreate,
     db: AsyncSession = Depends(get_db),
-    user: dict = Depends(get_current_user),
+    user: dict = Depends(require_roles("admin")),
 ) -> device_schema.DeviceConfigurationRead:
     stmt = select(domain.DeviceConfiguration).where(domain.DeviceConfiguration.device_id == payload.device_id)
     existing = (await db.execute(stmt)).scalar_one_or_none()
@@ -42,7 +42,7 @@ async def create_device_configuration(
 async def get_device_configuration(
     config_id: int,
     db: AsyncSession = Depends(get_db),
-    user: dict = Depends(get_current_user),
+    user: dict = Depends(require_roles("admin", "clinician", "auditor")),
 ) -> device_schema.DeviceConfigurationRead:
     config = await db.get(domain.DeviceConfiguration, config_id)
     if config is None:

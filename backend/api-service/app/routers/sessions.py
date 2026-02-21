@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..core.database import get_db
-from ..core.security import get_current_user
+from ..core.security import require_roles
 from ..models import domain
 from ..schemas import device as device_schema
 
@@ -19,7 +19,7 @@ router = APIRouter()
 async def start_session(
     payload: device_schema.PumpSessionCreate,
     db: AsyncSession = Depends(get_db),
-    user: dict = Depends(get_current_user),
+    user: dict = Depends(require_roles("admin", "clinician")),
 ) -> device_schema.PumpSessionRead:
     patient = await db.get(domain.Patient, payload.patient_id)
     if patient is None:
@@ -45,7 +45,7 @@ async def start_session(
 async def close_session(
     session_id: int,
     db: AsyncSession = Depends(get_db),
-    user: dict = Depends(get_current_user),
+    user: dict = Depends(require_roles("admin", "clinician")),
 ) -> device_schema.PumpSessionRead:
     session = await db.get(domain.PumpSession, session_id)
     if session is None:

@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..core.database import get_db
-from ..core.security import get_current_user, hash_identifier
+from ..core.security import hash_identifier, require_roles
 from ..core.settings import APISettings, get_settings
 from ..models import domain
 from ..schemas import patient as patient_schema
@@ -20,7 +20,7 @@ async def create_patient(
     payload: patient_schema.PatientCreate,
     db: AsyncSession = Depends(get_db),
     settings: APISettings = Depends(get_settings),
-    user: dict = Depends(get_current_user),
+    user: dict = Depends(require_roles("admin", "clinician")),
 ) -> patient_schema.PatientRead:
     stmt = select(domain.Patient).where(domain.Patient.mrn == payload.mrn)
     existing = (await db.execute(stmt)).scalar_one_or_none()
@@ -43,7 +43,7 @@ async def create_patient(
 async def get_patient(
     patient_id: int,
     db: AsyncSession = Depends(get_db),
-    user: dict = Depends(get_current_user),
+    user: dict = Depends(require_roles("admin", "clinician", "auditor")),
 ) -> patient_schema.PatientRead:
     patient = await db.get(domain.Patient, patient_id)
     if patient is None:

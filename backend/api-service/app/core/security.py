@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
 
 from fastapi import Depends, HTTPException, Security, status
@@ -75,3 +76,17 @@ def get_current_user(token: str = Depends(verify_token)) -> dict:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid token claims")
 
     return {"sub": subject, "issued_at": payload.get("iat"), "roles": roles}
+
+
+def require_roles(*required_roles: str) -> Callable:
+    required = set(required_roles)
+
+    def _enforce_roles(user: dict = Depends(get_current_user)) -> dict:
+        user_roles = user.get("roles", [])
+        if not isinstance(user_roles, list):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient role")
+        if required and not required.intersection(set(user_roles)):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient role")
+        return user
+
+    return _enforce_roles

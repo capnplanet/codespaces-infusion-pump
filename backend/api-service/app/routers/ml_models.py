@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..core.database import get_db
-from ..core.security import get_current_user
+from ..core.security import require_roles
 from ..models import domain
 from ..schemas import ml as ml_schema
 
@@ -18,7 +18,7 @@ router = APIRouter()
 async def register_model(
     payload: ml_schema.ModelVersionCreate,
     db: AsyncSession = Depends(get_db),
-    user: dict = Depends(get_current_user),
+    user: dict = Depends(require_roles("admin")),
 ) -> ml_schema.ModelVersionRead:
     stmt = select(domain.MLModelVersion).where(domain.MLModelVersion.registry_id == payload.registry_id)
     existing = (await db.execute(stmt)).scalar_one_or_none()
@@ -43,7 +43,7 @@ async def register_model(
 async def get_model(
     model_id: int,
     db: AsyncSession = Depends(get_db),
-    user: dict = Depends(get_current_user),
+    user: dict = Depends(require_roles("admin", "clinician", "auditor")),
 ) -> ml_schema.ModelVersionRead:
     model = await db.get(domain.MLModelVersion, model_id)
     if model is None:
