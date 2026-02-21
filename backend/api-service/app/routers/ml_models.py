@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,8 +23,13 @@ async def register_model(
 ) -> ml_schema.ModelVersionRead:
     stmt = select(domain.MLModelVersion).where(domain.MLModelVersion.registry_id == payload.registry_id)
     existing = (await db.execute(stmt)).scalar_one_or_none()
-    if existing and existing.version == payload.version:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Model version already registered")
+    if existing:
+        if existing.version == payload.version:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Model version already registered")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Registry ID already exists; choose a new registry_id",
+        )
 
     model = domain.MLModelVersion(
         registry_id=payload.registry_id,
@@ -34,7 +40,14 @@ async def register_model(
         created_by=user["sub"],
     )
     db.add(model)
-    await db.commit()
+    try:
+        await db.commit()
+    except IntegrityError as exc:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Model version already registered or registry_id already exists",
+        ) from exc
     await db.refresh(model)
     return model
 
