@@ -26,6 +26,11 @@ node_modules/
 ml/registry/
 ml/artifacts/
 ml/data/
+ml/pipelines/training/artifacts/
+ml/pipelines/training/demo_artifacts/
+ml/pipelines/training/demo_artifacts_ci/
+ml/pipelines/training/demo_artifacts_reg/
+ml/pipelines/training/mlruns/
 
 # VS Code
 .vscode/
